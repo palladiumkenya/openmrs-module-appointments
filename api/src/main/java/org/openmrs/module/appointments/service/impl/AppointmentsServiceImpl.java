@@ -38,6 +38,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 import static java.util.Objects.isNull;
 import static org.openmrs.module.appointments.constants.PrivilegeConstants.MANAGE_APPOINTMENTS;
@@ -189,6 +190,38 @@ public class AppointmentsServiceImpl implements AppointmentsService {
         return appointments.stream().filter(appointment -> !isServiceOrServiceTypeVoided(appointment)).collect(Collectors.toList());
     }
 
+    @Transactional
+    @Override
+    public List<Appointment> getAllCameEarlyAppointments(Date forDate) {
+        List<Appointment> appointments = appointmentDao.getAllCameEarlyAppointments(forDate);
+        return appointments.stream().filter(appointment -> !isServiceOrServiceTypeVoided(appointment)).collect(Collectors.toList());
+    }
+
+    @Transactional
+    @Override
+    public List<Appointment> getCompletedAppointments(Date forDate){
+        List<Appointment> appointments = appointmentDao.getCompletedAppointments(forDate);
+        return appointments.stream().filter(appointment -> !isServiceOrServiceTypeVoided(appointment)).collect(Collectors.toList());
+    }
+
+    @Transactional
+    @Override
+    public List<Appointment> getAllAppointments(Date forDate, String status) {
+        List<Appointment> appointments = new ArrayList<Appointment>();
+        if (status.trim().equalsIgnoreCase("pending")) {
+            appointments = appointmentDao.getPendingAppointments(forDate);
+        } else if (status.trim().equalsIgnoreCase("honoured")) {
+            appointments = appointmentDao.getHonouredAppointments(forDate);
+        } else if (status.trim().equalsIgnoreCase("cameEarly")) {
+            appointments = appointmentDao.getCameEarlyAppointments(forDate);
+        } else if (status.trim().equalsIgnoreCase("rescheduled")) {
+            appointments = appointmentDao.getRescheduledAppointments(forDate);
+        } else {
+            appointments = appointmentDao.getAllAppointments(forDate, status);
+        }
+        return appointments.stream().filter(appointment -> !isServiceOrServiceTypeVoided(appointment)).collect(Collectors.toList());
+    }
+
     private boolean isServiceOrServiceTypeVoided(Appointment appointment) {
         return (appointment.getService() != null && appointment.getService().getVoided()) ||
                 (appointment.getServiceType() != null && appointment.getServiceType().getVoided());
@@ -229,6 +262,13 @@ public class AppointmentsServiceImpl implements AppointmentsService {
     @Override
     public Appointment getAppointmentByUuid(String uuid) {
         Appointment appointment = appointmentDao.getAppointmentByUuid(uuid);
+        return appointment;
+    }
+
+    @Transactional
+    @Override
+    public Appointment getAppointmentById(Integer id) {
+        Appointment appointment = appointmentDao.getAppointmentById(id);
         return appointment;
     }
 
@@ -373,12 +413,13 @@ public class AppointmentsServiceImpl implements AppointmentsService {
 
         try {
             //cancel the previous appointment
-            changeStatus(prevAppointment, AppointmentStatus.Cancelled.toString(), new Date());
+            // changeStatus(prevAppointment, AppointmentStatus.Cancelled.toString(), new Date());
+            changeStatus(prevAppointment, AppointmentStatus.Rescheduled.toString(), new Date());
             createEventInAppointmentAudit(prevAppointment,
                     appointmentServiceHelper.getAppointmentAsJsonString(prevAppointment));
 
             //create a new appointment
-            newAppointment.setUuid(null);
+            // newAppointment.setUuid(null);
             newAppointment.setDateCreated(null);
             newAppointment.setCreator(null);
             newAppointment.setDateChanged(null);

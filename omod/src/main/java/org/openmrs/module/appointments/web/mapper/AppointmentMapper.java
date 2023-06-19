@@ -3,9 +3,7 @@ package org.openmrs.module.appointments.web.mapper;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.openmrs.Location;
-import org.openmrs.Patient;
-import org.openmrs.Provider;
+import org.openmrs.*;
 import org.openmrs.api.LocationService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
@@ -18,6 +16,7 @@ import org.openmrs.module.appointments.model.AppointmentServiceType;
 import org.openmrs.module.appointments.model.AppointmentStatus;
 import org.openmrs.module.appointments.service.AppointmentServiceDefinitionService;
 import org.openmrs.module.appointments.service.AppointmentsService;
+import org.openmrs.module.appointments.util.PatientUtil;
 import org.openmrs.module.appointments.web.contract.AppointmentDefaultResponse;
 import org.openmrs.module.appointments.web.contract.AppointmentProviderDetail;
 import org.openmrs.module.appointments.web.contract.AppointmentQuery;
@@ -58,7 +57,6 @@ public class AppointmentMapper {
 
     @Autowired(required = false)
     AppointmentResponseExtension appointmentResponseExtension;
-
     private Log log = LogFactory.getLog(this.getClass());
 
     public List<AppointmentDefaultResponse> constructResponse(List<Appointment> appointments) {
@@ -107,6 +105,7 @@ public class AppointmentMapper {
         appointment.setAppointmentKind(AppointmentKind.valueOf(appointmentRequest.getAppointmentKind()));
         appointment.setComments(appointmentRequest.getComments());
         mapProvidersForAppointment(appointment, appointmentRequest.getProviders());
+        appointment.setDateHonored(appointmentRequest.getDateHonored());
     }
 
     private Provider identifyAppointmentProvider(String providerUuid) {
@@ -194,8 +193,10 @@ public class AppointmentMapper {
     private AppointmentDefaultResponse mapToDefaultResponse(Appointment a, AppointmentDefaultResponse response) {
         response.setUuid(a.getUuid());
         response.setAppointmentNumber(a.getAppointmentNumber());
-        response.setPatient(createPatientMap(a.getPatient()));
-        response.setService(appointmentServiceMapper.constructDefaultResponse(a.getService()));
+        response.setPatient(PatientUtil.patientMap(a.getPatient()));
+        if(a.getService() != null) {
+            response.setService(appointmentServiceMapper.constructDefaultResponse(a.getService()));
+        }
         response.setServiceType(createServiceTypeMap(a.getServiceType()));
         //response.setProvider(createProviderMap(a.getProvider()));
         response.setLocation(createLocationMap(a.getLocation()));
@@ -204,6 +205,7 @@ public class AppointmentMapper {
         response.setAppointmentKind(a.getAppointmentKind().name());
         response.setStatus(a.getStatus().name());
         response.setComments(a.getComments());
+        response.setDateHonored(a.getDateHonored());
         if (appointmentResponseExtension != null)
             response.setAdditionalInfo(appointmentResponseExtension.run(a));
         response.setProviders(mapAppointmentProviders(a.getProviders()));
@@ -272,9 +274,24 @@ public class AppointmentMapper {
         map.put("name", p.getPersonName().getFullName());
         map.put("uuid", p.getUuid());
         map.put("identifier", p.getPatientIdentifier().getIdentifier());
-        map.put("age", p.getAge());
-        map.put("gender", p.getGender());
         map.putAll(p.getActiveIdentifiers().stream().filter(e -> e.getIdentifierType() != null).collect(Collectors.toMap(e -> e.getIdentifierType().toString().replaceAll("[- ]", ""), e -> e.getIdentifier())));
+        for (PatientIdentifier patientIdentifier : p.getIdentifiers()) {
+            if (patientIdentifier.getIdentifierType().getName().equalsIgnoreCase("Unique Patient Number")) {
+                map.put("identifier", patientIdentifier.getIdentifier());
+            } else if (patientIdentifier.getIdentifierType().getName().equalsIgnoreCase("Patient Clinic Number")) {
+                map.put("identifier", patientIdentifier.getIdentifier());
+            }
+        }
+        map.put("gender", p.getGender());
+        PersonAttribute patientPhoneAttribute = p.getPerson().getAttribute("Telephone contact");
+        if (patientPhoneAttribute != null) {
+            String phone = patientPhoneAttribute.getValue();
+            map.put("phoneNumber", phone);
+        } else {
+            map.put("phoneNumber", "");
+        }
+        map.put("dob", p.getBirthdate());
+        map.put("age", p.getAge());
         return map;
     }
 

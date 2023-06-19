@@ -25,6 +25,7 @@ public class AppointmentDefaultResponse {
 	private Boolean voided;
 	private HashMap extensions;
 	private String teleconsultationLink;
+	private Date dateHonored;
 
 	public String getUuid() {
 		return uuid;
@@ -96,6 +97,14 @@ public class AppointmentDefaultResponse {
 	
 	public void setEndDateTime(Date endDateTime) {
 		this.endDateTime = endDateTime;
+	}
+
+	public Date getDateHonored() {
+		return dateHonored;
+	}
+	
+	public void setDateHonored(Date dateHonored) {
+		this.dateHonored = dateHonored;
 	}
 	
 	public String getAppointmentKind() {

@@ -14,11 +14,11 @@
 
 	<require_modules>
 		<require_module>org.openmrs.module.webservices.rest</require_module>
-		<require_module>org.bahmni.module.teleconsultation</require_module>
 	</require_modules>
 
 	<aware_of_modules>
 		<aware_of_module version="${openmrsAtomfeedVersion}">org.ict4h.openmrs.openmrs-atomfeed</aware_of_module>
+		<aware_of_module version="${teleconsultation.version}">org.bahmni.module.teleconsultation</aware_of_module>
 	</aware_of_modules>
 
 	<conditional_resources>
@@ -28,6 +28,10 @@
 				<module>
 					<moduleId>org.ict4h.openmrs.openmrs-atomfeed</moduleId>
 					<version>${openmrsAtomfeedVersion}</version>
+				</module>
+				<module>
+					<moduleId>org.bahmni.module.teleconsultation</moduleId>
+					<version>${teleconsultation.version}</version>
 				</module>
 			</modules>
 		</conditionalResource>
@@ -59,21 +63,6 @@
 		<file>messages_es.properties</file>
 	</messages>
 	<!-- /Internationalization -->
-
-	<advice>
-		<point>org.openmrs.module.appointments.service.AppointmentServiceDefinitionService</point>
-		<class>org.openmrs.module.appointments.advice.AppointmentServiceDefinitionAdvice</class>
-	</advice>
-
-	<advice>
-		<point>org.openmrs.module.appointments.service.AppointmentsService</point>
-		<class>org.openmrs.module.appointments.advice.AppointmentAdvice</class>
-	</advice>
-
-	<advice>
-		<point>org.openmrs.module.appointments.service.AppointmentRecurringPatternService</point>
-		<class>org.openmrs.module.appointments.advice.RecurringAppointmentsAdvice</class>
-	</advice>
 
 	<globalProperty>
 		<property>disableDefaultAppointmentValidations</property>

@@ -32,6 +32,18 @@ public interface AppointmentsService {
 
     @Transactional
     @Authorized({VIEW_APPOINTMENTS, MANAGE_APPOINTMENTS})
+    List<Appointment> getAllCameEarlyAppointments(Date forDate);
+
+    @Transactional
+    @Authorized({VIEW_APPOINTMENTS, MANAGE_APPOINTMENTS})
+    List<Appointment> getCompletedAppointments(Date forDate);
+
+
+    @Transactional
+    @Authorized({VIEW_APPOINTMENTS, MANAGE_APPOINTMENTS})
+    List<Appointment> getAllAppointments(Date forDate, String status);
+    @Transactional
+    @Authorized({VIEW_APPOINTMENTS, MANAGE_APPOINTMENTS})
     List<Appointment> search(Appointment appointment);
 
     @Transactional
@@ -49,6 +61,10 @@ public interface AppointmentsService {
     @Transactional
     @Authorized({VIEW_APPOINTMENTS, MANAGE_APPOINTMENTS})
     Appointment getAppointmentByUuid(String uuid);
+
+    @Transactional
+    @Authorized({VIEW_APPOINTMENTS, MANAGE_APPOINTMENTS})
+    Appointment getAppointmentById(Integer id);
 
     @Transactional
     @Authorized({MANAGE_APPOINTMENTS, MANAGE_OWN_APPOINTMENTS})
