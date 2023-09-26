@@ -206,18 +206,25 @@ public class AppointmentsServiceImpl implements AppointmentsService {
 
     @Transactional
     @Override
-    public List<Appointment> getAllAppointments(Date forDate, String status) {
+    public List<Appointment> getAllAppointments(Date forDate, AppointmentStatus status) {
+
         List<Appointment> appointments = new ArrayList<Appointment>();
-        if (status.trim().equalsIgnoreCase("pending")) {
-            appointments = appointmentDao.getPendingAppointments(forDate);
-        } else if (status.trim().equalsIgnoreCase("honoured")) {
-            appointments = appointmentDao.getHonouredAppointments(forDate);
-        } else if (status.trim().equalsIgnoreCase("cameEarly")) {
-            appointments = appointmentDao.getCameEarlyAppointments(forDate);
-        } else if (status.trim().equalsIgnoreCase("rescheduled")) {
-            appointments = appointmentDao.getRescheduledAppointments(forDate);
-        } else {
-            appointments = appointmentDao.getAllAppointments(forDate, status);
+        switch (status) {
+            case Pending:
+                appointments = appointmentDao.getPendingAppointments(forDate);
+                break;
+            case Honored:
+                appointments = appointmentDao.getHonouredAppointments(forDate);
+                break;
+            case CameEarly:
+                appointments = appointmentDao.getCameEarlyAppointments(forDate);
+                break;
+            case Rescheduled:
+                appointments = appointmentDao.getRescheduledAppointments(forDate);
+                break;
+            default:
+                appointments = appointmentDao.getAllAppointments(forDate);
+                break;
         }
         return appointments.stream().filter(appointment -> !isServiceOrServiceTypeVoided(appointment)).collect(Collectors.toList());
     }
