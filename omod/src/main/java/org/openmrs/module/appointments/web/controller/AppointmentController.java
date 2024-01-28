@@ -180,17 +180,6 @@ public class AppointmentController extends BaseRestController {
 
     @RequestMapping(method = RequestMethod.GET)
     @ResponseBody
-    public AppointmentDefaultResponse getAppointmentByUuid(@RequestParam(value = "uuid") String uuid) {
-        Appointment appointment = appointmentsService.getAppointmentByUuid(uuid);
-        if (appointment == null) {
-            log.error("Invalid. Appointment does not exist. UUID - " + uuid);
-            throw new RuntimeException("Appointment does not exist");
-        }
-        return appointmentMapper.constructResponse(appointment);
-    }
-
-    @RequestMapping(method = RequestMethod.GET)
-    @ResponseBody
     public AppointmentDefaultResponse getAppointmentById(@RequestParam(value = "id") Integer id) {
         Appointment appointment = appointmentsService.getAppointmentById(id);
         if (appointment == null) {
