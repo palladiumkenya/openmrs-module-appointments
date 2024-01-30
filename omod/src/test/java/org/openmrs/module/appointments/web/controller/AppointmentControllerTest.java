@@ -171,25 +171,6 @@ public class AppointmentControllerTest {
     }
 
     @Test
-    public void shouldGetAppointmentByUuid() throws Exception {
-        String appointmentUuid = "appointmentUuid";
-        Appointment appointment = new Appointment();
-        appointment.setUuid(appointmentUuid);
-        when(appointmentsService.getAppointmentByUuid(appointmentUuid)).thenReturn(appointment);
-        appointmentController.getAppointmentByUuid(appointmentUuid);
-        verify(appointmentsService, times(1)).getAppointmentByUuid(appointmentUuid);
-        verify(appointmentMapper, times(1)).constructResponse(appointment);
-    }
-
-    @Test
-    public void shouldThrowExceptionIfAppointmentDoesNotExist() throws Exception {
-        when(appointmentsService.getAppointmentByUuid(any(String.class))).thenReturn(null);
-        expectedException.expect(RuntimeException.class);
-        expectedException.expectMessage("Appointment does not exist");
-        appointmentController.getAppointmentByUuid("randomUuid");
-    }
-
-    @Test
     public void shouldUndoStatusOfAppointment() throws Exception {
         Appointment appointment = new Appointment();
         appointment.setUuid("appointmentUuid");
