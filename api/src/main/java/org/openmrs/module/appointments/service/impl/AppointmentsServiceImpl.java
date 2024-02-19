@@ -170,6 +170,7 @@ public class AppointmentsServiceImpl implements AppointmentsService {
 
     private void save(Appointment appointment) {
         createAndSetAppointmentAudit(appointment);
+        appointment.setProviders(new HashSet<>());
         appointmentDao.save(appointment);
     }
 
