@@ -15,10 +15,10 @@
         <many-to-one name="serviceType" class="org.openmrs.module.appointments.model.AppointmentServiceType" column="appointment_service_type_id"/>
 
 
-        <set name="providers" table="patient_appointment_provider" lazy="true" cascade="all-delete-orphan">
+        <!-- <set name="providers" table="patient_appointment_provider" inverse="true" lazy="true" cascade="all-delete-orphan">
            <key column="patient_appointment_id"/>
             <one-to-many class="org.openmrs.module.appointments.model.AppointmentProvider" />
-        </set>
+        </set> -->
 
         <!--<many-to-one name="provider" class="org.openmrs.Provider" column="provider_id"/>-->
         <many-to-one name="location" class="org.openmrs.Location" column="location_id"/>
