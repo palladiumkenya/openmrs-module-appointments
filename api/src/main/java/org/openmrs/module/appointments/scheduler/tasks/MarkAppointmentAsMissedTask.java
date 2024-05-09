@@ -4,8 +4,10 @@ import org.openmrs.GlobalProperty;
 import org.openmrs.api.AdministrationService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.appointments.model.Appointment;
+import org.openmrs.module.appointments.model.AppointmentSearchRequest;
 import org.openmrs.module.appointments.model.AppointmentStatus;
 import org.openmrs.module.appointments.service.AppointmentsService;
+import org.openmrs.module.appointments.util.DateUtil;
 import org.openmrs.scheduler.tasks.AbstractTask;
 
 import java.util.Date;
@@ -26,15 +28,14 @@ public class MarkAppointmentAsMissedTask extends AbstractTask {
         GlobalProperty schedulerMarksCompleteProperty = administrationService.getGlobalPropertyObject("SchedulerMarksComplete");
         Boolean schedulerMarksComplete = Boolean.valueOf(schedulerMarksCompleteProperty.getPropertyValue());
         Date today = new Date();
-        List<Appointment> appointments = appointmentsService.getAllAppointmentsInDateRange(null, today);
-        List<Appointment> scheduledAndCheckedInAppointments = appointments.stream()
-                .filter(appointment -> isAppointmentScheduled(appointment) || isAppointmentCheckedIn(appointment))
-                .collect(Collectors.toList());
-        for (Appointment appointment : scheduledAndCheckedInAppointments) {
+        AppointmentSearchRequest appointmentSearchRequest = new AppointmentSearchRequest();
+        appointmentSearchRequest.setStatus(AppointmentStatus.Scheduled);
+        appointmentSearchRequest.setEndDate(DateUtil.getEndOfDay());
+
+        List<Appointment> appointments = appointmentsService.search(appointmentSearchRequest);;
+        for (Appointment appointment : appointments) {
             String status = AppointmentStatus.Missed.toString();
-            if ((!schedulerMarksComplete && appointment.getStatus().equals(AppointmentStatus.CheckedIn)) || appointment.getStatus().equals(AppointmentStatus.Scheduled)) {
-                appointmentsService.changeStatus(appointment, status, today);
-            }
+            appointmentsService.changeStatus(appointment, status, today);
         }
     }
 
