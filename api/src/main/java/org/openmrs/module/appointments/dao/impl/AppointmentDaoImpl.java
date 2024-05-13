@@ -202,7 +202,7 @@ public class AppointmentDaoImpl implements AppointmentDao {
             criteria.add(Restrictions.ge("startDateTime", appointmentSearchRequest.getStartDate()));
         }
         if (appointmentSearchRequest.getEndDate() != null) {
-            criteria.add(Restrictions.le("startDateTime", appointmentSearchRequest.getEndDate()));
+            criteria.add(Restrictions.le("endDateTime", appointmentSearchRequest.getEndDate()));
         }
     }
 
