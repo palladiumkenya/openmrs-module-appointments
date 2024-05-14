@@ -68,8 +68,8 @@ public class MarkAppointmentAsMissedTask extends AbstractTask {
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         int minute = calendar.get(Calendar.MINUTE);
         int second = calendar.get(Calendar.SECOND);
-        // Check if the current time is past a certain threshold (e.g., 11:50:50 PM)
-        return (hour == 23 && minute == 50 && second == 50);
+        // Check if the current time is past a certain threshold (e.g., 11:59:59 PM)
+        return (hour == 23 && minute == 59 && second == 59);
     }
 
     private static Date getEndOfPreviousDay() {
