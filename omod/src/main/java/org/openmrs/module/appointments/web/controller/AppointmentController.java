@@ -243,8 +243,19 @@ public class AppointmentController extends BaseRestController {
             if (StringUtils.isEmpty(forDate) || StringUtils.isEmpty(status)) {
                 return new ResponseEntity<>("The request requires appointment date and status", HttpStatus.BAD_REQUEST);
             }
-            List<Appointment> appointments = appointmentsService
-                    .getAllAppointments(DateUtil.convertToLocalDateFromUTC(forDate), status);
+
+            // Parse the forDate string into a Date object
+            Date date = DateUtil.convertToLocalDateFromUTC(forDate);
+
+            // Parse the status string into an AppointmentStatus enum
+            AppointmentStatus appointmentStatus;
+            try {
+                appointmentStatus = AppointmentStatus.valueOf(status);
+            } catch (IllegalArgumentException e) {
+                return new ResponseEntity<>("Invalid status value", HttpStatus.BAD_REQUEST);
+            }
+
+            List<Appointment> appointments = appointmentsService.getAllAppointments(date, appointmentStatus);
             return new ResponseEntity<>(appointmentMapper.constructResponse(appointments), HttpStatus.OK);
         } catch (Exception e) {
             log.error("Runtime error while trying to fetch appointments by status and date", e);

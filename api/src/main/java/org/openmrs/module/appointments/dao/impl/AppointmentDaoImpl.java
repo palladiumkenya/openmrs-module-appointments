@@ -57,7 +57,7 @@ public class AppointmentDaoImpl implements AppointmentDao {
     }
 
     @Override
-    public List<Appointment> getAllAppointments(Date forDate, String status) {
+    public List<Appointment> getAllAppointments(Date forDate, AppointmentStatus status) {
         Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Appointment.class);
         criteria.add(Restrictions.eq("voided", false));
         criteria.createAlias("patient", "patient");
@@ -69,8 +69,14 @@ public class AppointmentDaoImpl implements AppointmentDao {
             criteria.add(Restrictions.lt("endDateTime", maxDate));
         }
 
-        if (StringUtils.isNotEmpty(status)) {
-            criteria.add(Restrictions.eq("status", AppointmentStatus.valueOf(status))); //TODO: we may need to explore Optional construct to help validate against missing enum values
+        // Check if the provided status is a valid enum value
+        if (status != null) {
+            boolean isValidStatus = Arrays.asList(AppointmentStatus.values()).contains(status);
+            if (isValidStatus) {
+                criteria.add(Restrictions.eq("status", status));
+            } else {
+                throw new IllegalArgumentException("Invalid status value");
+            }
         }
         return criteria.list();
     }
