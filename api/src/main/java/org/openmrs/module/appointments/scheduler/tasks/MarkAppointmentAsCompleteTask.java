@@ -13,8 +13,7 @@ import org.openmrs.module.appointments.service.AppointmentsService;
 import org.openmrs.module.appointments.util.DateUtil;
 import org.openmrs.scheduler.tasks.AbstractTask;
 
-import liquibase.pro.packaged.v;
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -35,14 +34,30 @@ public class MarkAppointmentAsCompleteTask extends AbstractTask {
         }
 
         Date today = new Date();
-        AppointmentSearchRequest appointmentSearchRequest = new AppointmentSearchRequest();
-        appointmentSearchRequest.setStatus(AppointmentStatus.CheckedIn);
-        appointmentSearchRequest.setStartDate(DateUtil.getStartOfDay());
-        appointmentSearchRequest.setEndDate(DateUtil.getEndOfDay());
-        List<Appointment> appointments = appointmentsService.search(appointmentSearchRequest);
+         // Retrieve appointments with CheckedIn status
+        AppointmentSearchRequest checkedInRequest = new AppointmentSearchRequest();
+        checkedInRequest.setStatus(AppointmentStatus.CheckedIn);
+        checkedInRequest.setStartDate(DateUtil.getStartOfDay());
+        checkedInRequest.setEndDate(DateUtil.getEndOfDay());
+        List<Appointment> checkedInAppointments = appointmentsService.search(checkedInRequest);
+
+        /*  Retrieve appointments with Scheduled status for today. 
+            This is necessary to check if the patient has visited and had an encounter today
+            incases where checkIn status might not have been set yet they visited. We need to mark the appointment as completed
+        */
+        AppointmentSearchRequest scheduledRequest = new AppointmentSearchRequest();
+        scheduledRequest.setStatus(AppointmentStatus.Scheduled);
+        scheduledRequest.setStartDate(DateUtil.getStartOfDay());
+        scheduledRequest.setEndDate(DateUtil.getEndOfDay());
+        List<Appointment> scheduledAppointments = appointmentsService.search(scheduledRequest);
+
+        // Combine both lists
+        List<Appointment> appointments = new ArrayList<>();
+        appointments.addAll(checkedInAppointments);
+        appointments.addAll(scheduledAppointments);
 
         for (Appointment appointment : appointments) {
-            if (isTodaysVisitCheckedOut(appointment.getPatient())) {
+            if (hasVisitAndEncounterToday(appointment.getPatient())) {
                 String status = AppointmentStatus.Completed.toString();
                 appointmentsService.changeStatus(appointment, status, today);
 
@@ -55,13 +70,22 @@ public class MarkAppointmentAsCompleteTask extends AbstractTask {
         return appointment.getStatus().equals(AppointmentStatus.CheckedIn);
     }
 
-    private boolean isTodaysVisitCheckedOut(Patient patient) {
+    private boolean hasVisitAndEncounterToday(Patient patient) {
         Date startOfDay = DateUtil.getStartOfDay();
         Date endOfDay = DateUtil.getEndOfDay();
+        Boolean hasVisitAndEncounter = false;
         VisitService visitService = Context.getVisitService();
-        List<Visit> visits = visitService.getVisits(null, Arrays.asList(patient), null, null, startOfDay, null, null,
-                endOfDay, null, true, false);
-        return visits.size() > 0;
+        List<Visit> visits = visitService.getVisits(null, Arrays.asList(patient), null, null, startOfDay, null, endOfDay,
+                null, null, true, false);
+                if(!visits.isEmpty()) {
+                    for (Visit visit : visits) {
+                        if (!visit.getEncounters().isEmpty() ) {
+                            hasVisitAndEncounter = true;
+                        }
+                    }
+                }
+                
+        return hasVisitAndEncounter;
 
     }
 
